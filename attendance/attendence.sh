@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Create custom URL for the repo
-repo_url="https://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@github.com/avengers-p6/attendance-api.git"
+repo_url="https://github.com/H4rsh99/attendance_packer.git"
 
 # Clone the repository
 git clone "$repo_url"
 
 # Install apt packages
 ls
-sudo cp ~/attendance-api/attendance.service /etc/systemd/system/attendance.service
+sudo cp ~/attendance/attendance.service /etc/systemd/system/attendance.service
 sudo apt -y update && sudo apt -y upgrade
 sudo apt -y update && sudo apt -y install  python3
 sudo apt -y update && sudo apt -y install python3-pip
