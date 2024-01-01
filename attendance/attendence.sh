@@ -7,7 +7,7 @@ repo_url="https://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@github.com/avengers-p
 git clone "$repo_url"
 
 # Install apt packages
-sudo cp ~/attendance-api/attendance.service /etc/systemd/system/attendance.service
+sudo cp ~/attendance.service /etc/systemd/system/attendance.service
 sudo apt -y update && sudo apt -y upgrade
 sudo apt -y update && sudo apt -y install  python3
 sudo apt -y update && sudo apt -y install python3-pip
