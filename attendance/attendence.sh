@@ -28,7 +28,7 @@ pip install python-json-logger
 pip install awscli
 
 #Set path
-echo 'export PATH=$PATH:/home/dell/.local/bin' >> ~/.bashrc
+echo 'export PATH=$PATH:/home/ubuntu/.local/bin' >> ~/.bashrc
 source ~/.bashrc
 
 # Setup the attendance service
