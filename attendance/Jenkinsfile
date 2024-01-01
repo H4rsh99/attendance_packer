@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/H4rsh99/attendance_packer.git'
+            }
+        }
+
+        stage('Run Packer Build') {
+            steps {
+                script {
+                    // Change directory to the correct directory name
+                    dir('attendance') {
+                        withCredentials([string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'), string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')]) {
+                           sh 'packer init -upgrade attendance.pkr.hcl'
+                           sh 'packer build .'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
