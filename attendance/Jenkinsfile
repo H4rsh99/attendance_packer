@@ -1,7 +1,77 @@
 pipeline {
     agent any
-
+    
+    parameters {
+        booleanParam(name: 'SKIP_STATIC_CODE_ANALYSIS', defaultValue: false, description: 'Skip code analysis')
+        booleanParam(name: 'SKIP_UNIT_TEST', defaultValue: false, description: 'Skip UNIT TEST stage')
+        booleanParam(name: 'SKIP_BUG_ANALYSIS', defaultValue: false, description: 'Skip bug analysis stage')
+        booleanParam(name: 'SKIP_DEPENDENCY_SCANNING', defaultValue: false, description: 'Skip DEPENDENCY_SCANNING stage')
+    }
+    
     stages {
+        stage('Code Checkout') {
+            steps {
+                git branch: 'main', credentialsId: 'Attendance', url: 'https://github.com/OT-MyGurukulam/OT-Attendance'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    sh 'python3 -m venv myenv'
+                    sh '. myenv/bin/activate'
+                    sh 'python3 -m pip install -r requirements.txt'
+                    sh 'python3 -m pip install flake8-html'
+                }
+            }
+        }
+        
+        stage('Static Code Analysis') {
+            when {
+                expression { params.SKIP_STATIC_CODE_ANALYSIS == false }
+            }
+            steps {
+                sh '. myenv/bin/activate'
+                // Run flake8 for style checking
+                // sh 'sudo flake8 . | tee flake8_output.txt'
+                // Run pylint for code analysis
+                sh 'pylint --disable=R0022,R0903,E0611,E0602,F0010,C0330,C0326,C0304,E0401,C0111,R0801,W0621,W0613,W0612,W0611,C0411,R0201,C0301,C0103,R1705,E1120,R1725,R0124 router/ client/ models/ utils/ app.py'
+                sh 'pylint | tee pylint_output.txt'
+            }
+        }
+        
+        stage('Bug Analysis') {
+            when {
+                expression { params.SKIP_BUG_ANALYSIS == false }
+            }
+            steps {
+                // Run bandit for security analysis
+                sh 'bandit -r . -f html -o bandit_report.html || true'
+            }
+        }
+        
+        stage('Unit Test') {
+            when {
+                expression { params.SKIP_UNIT_TEST == false }
+            }
+            steps {
+                sh '. myenv/bin/activate'
+                sh 'pytest | tee pytest_output.txt'
+                // sh 'pytest router/tests/test_cache.py | tee pytest_output.txt'
+            }
+        }
+        
+        stage('Dependency Scanning') {
+            when {
+                expression { params.SKIP_DEPENDENCY_SCANNING == false }
+            }
+            steps {
+                sh '. myenv/bin/activate'
+                sh 'safety check -r pyproject.toml | tee safety_output.txt'
+                // sh 'safety check | tee safety_output.txt'
+            }
+        }
+        
         stage('Clone Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/H4rsh99/attendance_packer.git'
@@ -14,12 +84,22 @@ pipeline {
                     // Change directory to the correct directory name
                     dir('attendance') {
                         withCredentials([string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'), string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')]) {
-                           sh 'packer init -upgrade attendance.pkr.hcl'
-                           sh 'packer build .'
+                            sh 'packer init -upgrade attendance.pkr.hcl'
+                            sh 'packer build .'
                         }
                     }
                 }
             }
         }
     }
+    
+    post {
+        success {
+            echo 'Build successful! All checks passed.'
+        }
+        failure {
+            echo 'Build failed! Check the logs for details.'
+        }
+    }
 }
+
