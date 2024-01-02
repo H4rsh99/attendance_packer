@@ -8,7 +8,7 @@ packer {
 }
 
 source "amazon-ebs" "ubuntu" {
-  ami_name      = "attendance_AMI_Packer01"
+  ami_name      = "attendance_AMI_Packer03"
   instance_type = "t2.micro"
   region        = "ap-south-1"
   source_ami_filter {
